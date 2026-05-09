@@ -14,6 +14,7 @@ warnings.filterwarnings("ignore", category=LangChainPendingDeprecationWarning)
 from langgraph.graph import END, START, StateGraph
 
 from axiom.analysis import analyze_dataset
+from axiom.branding import read_brand_guideline
 from axiom.io import read_dataset
 from axiom.planning import create_analysis_plan, mark_plan_approved
 from axiom.profiling import profile_dataset
@@ -53,6 +54,9 @@ def initial_state(
     run_id: str | None = None,
     title: str = "Project Axiom Analysis",
     approved: bool = True,
+    use_llm: bool = True,
+    logo_path: Path | None = None,
+    brand_guideline_path: Path | None = None,
 ) -> AxiomState:
     run_name = run_id or datetime.now().strftime("%Y%m%d_%H%M%S")
     return {
@@ -62,13 +66,21 @@ def initial_state(
         "run_dir": output_dir.resolve() / run_name,
         "title": title,
         "approved": approved,
+        "use_llm": use_llm,
+        "logo_path": logo_path.resolve() if logo_path else Path("Axiom Logo.png").resolve(),
+        "brand_guideline_path": brand_guideline_path.resolve()
+        if brand_guideline_path
+        else Path("sample_data/axiom_brand_guideline.md").resolve(),
     }
 
 
 def orchestrator_node(state: AxiomState) -> dict[str, Any]:
     run_dir = state["run_dir"]
     run_dir.mkdir(parents=True, exist_ok=True)
-    return {"run_dir": run_dir}
+    return {
+        "run_dir": run_dir,
+        "brand_guideline": read_brand_guideline(state.get("brand_guideline_path")),
+    }
 
 
 def data_engineer_node(state: AxiomState) -> dict[str, Any]:
@@ -82,7 +94,12 @@ def data_engineer_node(state: AxiomState) -> dict[str, Any]:
 
 
 def analysis_planner_node(state: AxiomState) -> dict[str, Any]:
-    plan = create_analysis_plan(state["manifesto"], state["title"])
+    plan = create_analysis_plan(
+        state["manifesto"],
+        state["title"],
+        brand_guideline=state.get("brand_guideline", ""),
+        use_llm=state["use_llm"],
+    )
     if state["approved"]:
         plan = mark_plan_approved(plan)
 
@@ -107,6 +124,8 @@ def document_architect_node(state: AxiomState) -> dict[str, Any]:
         state["analysis"],
         state["run_dir"],
         state["title"],
+        logo_path=state.get("logo_path"),
+        brand_guideline=state.get("brand_guideline", ""),
     )
     artifacts["analysis_plan"] = state["run_dir"] / "analysis_plan.json"
     return {"artifacts": artifacts}

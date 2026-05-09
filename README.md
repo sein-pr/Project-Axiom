@@ -13,10 +13,24 @@ python -m pip install -e .
 axiom run .\sample_data\sales_sample.csv
 ```
 
+For development and tests:
+
+```powershell
+python -m pip install -e ".[dev]"
+python -m pytest -q
+```
+
 To generate only the human-reviewable analysis plan:
 
 ```powershell
 axiom plan .\sample_data\sales_sample.csv
+```
+
+By default, planning uses Groq when a key is present in `.env`. To force the
+deterministic fallback:
+
+```powershell
+axiom plan .\sample_data\sales_sample.csv --no-llm
 ```
 
 To force an approval checkpoint before rendering outputs:
@@ -60,3 +74,20 @@ Next milestones:
 
 Copy `.env.example` to `.env` and fill in local secrets as needed. `.env` is
 ignored by git.
+
+Supported Groq settings:
+
+- `GROQ_API_KEY`
+- `groq_api_key_1`
+- `groq_api_key_2`
+- `AXIOM_GROQ_MODEL`, defaulting to `llama-3.3-70b-versatile`
+
+## Branding
+
+Generated PDF, PPTX, chart, and Excel outputs use the AXIOM logo and brand colors
+from `sample_data/axiom_brand_guideline.md`:
+
+- dark enterprise backgrounds
+- electric blue and AI purple highlights
+- professional AXIOM naming and tagline
+- logo placement in reports and slide decks

@@ -20,6 +20,9 @@ def run_pipeline(
     run_id: str | None = None,
     title: str = "Project Axiom Analysis",
     approved: bool = True,
+    use_llm: bool = True,
+    logo_path: Path | None = None,
+    brand_guideline_path: Path | None = None,
 ) -> PipelineResult:
     graph = build_axiom_graph()
     result = graph.invoke(
@@ -29,6 +32,9 @@ def run_pipeline(
             run_id=run_id,
             title=title,
             approved=approved,
+            use_llm=use_llm,
+            logo_path=logo_path,
+            brand_guideline_path=brand_guideline_path,
         )
     )
 
@@ -45,6 +51,9 @@ def create_plan(
     output_dir: Path = Path("axiom_output"),
     run_id: str | None = None,
     title: str = "Project Axiom Analysis",
+    use_llm: bool = True,
+    logo_path: Path | None = None,
+    brand_guideline_path: Path | None = None,
 ) -> PipelineResult:
     return run_pipeline(
         input_path=input_path,
@@ -52,4 +61,7 @@ def create_plan(
         run_id=run_id,
         title=title,
         approved=False,
+        use_llm=use_llm,
+        logo_path=logo_path,
+        brand_guideline_path=brand_guideline_path,
     )

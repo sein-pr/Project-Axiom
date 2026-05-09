@@ -13,6 +13,10 @@ class AxiomState(TypedDict):
     run_dir: Path
     title: str
     approved: bool
+    use_llm: bool
+    logo_path: NotRequired[Path]
+    brand_guideline_path: NotRequired[Path]
+    brand_guideline: NotRequired[str]
     raw_frame: NotRequired[pd.DataFrame]
     cleaned_frame: NotRequired[pd.DataFrame]
     manifesto: NotRequired[dict[str, Any]]
@@ -20,4 +24,3 @@ class AxiomState(TypedDict):
     analysis: NotRequired[dict[str, Any]]
     artifacts: NotRequired[dict[str, Path]]
     audit: NotRequired[dict[str, Any]]
-

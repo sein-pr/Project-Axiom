@@ -2,8 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from axiom.llm import GroqPlanner
 
-def create_analysis_plan(manifesto: dict[str, Any], title: str) -> dict[str, Any]:
+
+def create_analysis_plan(
+    manifesto: dict[str, Any],
+    title: str,
+    brand_guideline: str = "",
+    use_llm: bool = True,
+) -> dict[str, Any]:
     schema = manifesto.get("schema", [])
     numeric_columns = [column["column"] for column in schema if column.get("type") == "numeric"]
     categorical_columns = [column["column"] for column in schema if column.get("type") == "categorical"]
@@ -11,6 +18,23 @@ def create_analysis_plan(manifesto: dict[str, Any], title: str) -> dict[str, Any
 
     questions = _analysis_questions(numeric_columns, categorical_columns, datetime_columns)
     render_targets = ["data_manifesto.json", "summary_stats.json", "report.pdf", "slide_deck.pptx", "raw_data_dashboard.xlsx"]
+    data_quality_focus = manifesto.get("anomaly_warnings", [])
+    planner_source = "deterministic"
+    assumptions: list[str] = []
+
+    if use_llm:
+        llm_plan = GroqPlanner().create_plan(
+            manifesto=manifesto,
+            title=title,
+            deterministic_questions=questions,
+            brand_guideline=brand_guideline,
+        )
+        if llm_plan:
+            questions = llm_plan["recommended_questions"] or questions
+            data_quality_focus = llm_plan["data_quality_focus"] or data_quality_focus
+            assumptions = llm_plan["business_context_assumptions"]
+            render_targets = llm_plan["planned_outputs"] or render_targets
+            planner_source = "groq"
 
     return {
         "title": title,
@@ -18,8 +42,10 @@ def create_analysis_plan(manifesto: dict[str, Any], title: str) -> dict[str, Any
         "row_count": manifesto.get("row_count"),
         "column_count": manifesto.get("column_count"),
         "recommended_questions": questions,
-        "data_quality_focus": manifesto.get("anomaly_warnings", []),
+        "data_quality_focus": data_quality_focus,
+        "business_context_assumptions": assumptions,
         "planned_outputs": render_targets,
+        "planner_source": planner_source,
         "approval_required": True,
         "status": "awaiting_approval",
     }
@@ -56,4 +82,3 @@ def _analysis_questions(
         questions.append("What are the most frequent categories and notable data quality issues?")
 
     return questions
-

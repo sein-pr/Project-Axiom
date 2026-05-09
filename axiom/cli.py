@@ -19,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     plan_parser = subparsers.add_parser("plan", help="Profile a dataset and write an analysis plan for approval.")
     add_common_run_arguments(plan_parser)
+    add_llm_argument(plan_parser)
 
     run_parser = subparsers.add_parser("run", help="Profile, analyze, and render report artifacts.")
     add_common_run_arguments(run_parser)
@@ -27,6 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Prompt for approval after writing the analysis plan.",
     )
+    add_llm_argument(run_parser)
     return parser
 
 
@@ -48,6 +50,26 @@ def add_common_run_arguments(parser: argparse.ArgumentParser) -> None:
         default="Project Axiom Analysis",
         help="Report/deck title.",
     )
+    parser.add_argument(
+        "--logo",
+        type=Path,
+        default=Path("Axiom Logo.png"),
+        help="Path to the AXIOM logo used in generated reports.",
+    )
+    parser.add_argument(
+        "--brand-guideline",
+        type=Path,
+        default=Path("sample_data/axiom_brand_guideline.md"),
+        help="Path to the AXIOM brand guideline used for planning and styling.",
+    )
+
+
+def add_llm_argument(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--no-llm",
+        action="store_true",
+        help="Use deterministic planning instead of Groq-backed planning.",
+    )
 
 
 def main() -> None:
@@ -60,8 +82,12 @@ def main() -> None:
             output_dir=args.output_dir,
             run_id=args.run_id,
             title=args.title,
+            use_llm=not args.no_llm,
+            logo_path=args.logo,
+            brand_guideline_path=args.brand_guideline,
         )
         print(f"Axiom plan ready: {result.run_dir / 'analysis_plan.json'}")
+        print(f"Planner source: {result.analysis_plan['planner_source']}")
         for question in result.analysis_plan["recommended_questions"]:
             print(f"- {question}")
     elif args.command == "run":
@@ -72,8 +98,12 @@ def main() -> None:
                 output_dir=args.output_dir,
                 run_id=args.run_id,
                 title=args.title,
+                use_llm=not args.no_llm,
+                logo_path=args.logo,
+                brand_guideline_path=args.brand_guideline,
             )
             print(f"Axiom plan ready: {plan_result.run_dir / 'analysis_plan.json'}")
+            print(f"Planner source: {plan_result.analysis_plan['planner_source']}")
             for question in plan_result.analysis_plan["recommended_questions"]:
                 print(f"- {question}")
             answer = input("Approve this analysis plan and render outputs? [y/N]: ").strip().lower()
@@ -89,6 +119,9 @@ def main() -> None:
             run_id=args.run_id,
             title=args.title,
             approved=approved,
+            use_llm=not args.no_llm,
+            logo_path=args.logo,
+            brand_guideline_path=args.brand_guideline,
         )
         print(f"Axiom run complete: {result.run_dir}")
         for name, path in result.artifacts.items():

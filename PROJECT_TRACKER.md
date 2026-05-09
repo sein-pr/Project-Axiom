@@ -56,6 +56,11 @@ axiom run <input-file>
   before rendering outputs.
 - Added `analysis_plan.json` and `audit.json` outputs.
 - Added `.env.example` with redacted configuration names.
+- Added Groq-backed analysis planning with deterministic fallback.
+- Added AXIOM branding helpers and applied brand colors/logo to generated PDF,
+  PPTX, charts, and Excel outputs.
+- Added automated tests for profiling, analysis, plan-only graph execution, and
+  full artifact generation.
 
 ## Verification
 
@@ -69,6 +74,30 @@ The sample pipeline was tested successfully using:
 
 ```powershell
 .\.venv\Scripts\axiom.exe run .\sample_data\sales_sample.csv --run-id smoke_test --title "Axiom Sales Sample"
+```
+
+The automated test suite was tested successfully using:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+Result:
+
+```text
+4 passed
+```
+
+Groq-backed planning was tested successfully using:
+
+```powershell
+.\.venv\Scripts\axiom.exe plan .\sample_data\sales_sample.csv --run-id groq_plan_smoke --title "Axiom Sales Sample"
+```
+
+Result:
+
+```text
+Planner source: groq
 ```
 
 The run generated outputs in:
@@ -106,16 +135,21 @@ Project Axiom/
 |-- axiom/
 |   |-- __init__.py
 |   |-- analysis.py
+|   |-- branding.py
 |   |-- cli.py
 |   |-- graph.py
 |   |-- io.py
+|   |-- llm.py
 |   |-- pipeline.py
 |   |-- planning.py
 |   |-- profiling.py
 |   |-- rendering.py
 |   `-- state.py
 |-- sample_data/
+|   |-- axiom_brand_guideline.md
 |   `-- sales_sample.csv
+|-- tests/
+|   `-- test_pipeline.py
 |-- .env.example
 |-- .gitignore
 |-- Axiom Logo.png
@@ -127,14 +161,12 @@ Project Axiom/
 
 ## Next Milestones
 
-1. Replace the local deterministic analysis path with a sandboxed ReAct-style
+1. Commit and push the Groq, branding, and tests milestone.
+2. Replace the local deterministic analysis path with a sandboxed ReAct-style
    analysis loop.
-2. Add support for SQL sources through read-only DuckDB/database connections.
-3. Improve PDF/PPTX branding with the Axiom logo and visual style.
-4. Add automated tests for ingestion, profiling, graph nodes, analysis, and rendering.
-5. Add richer anomaly detection and business metric inference.
-6. Add optional LLM-backed planning/narrative generation using local `.env`
-   configuration.
+3. Add support for SQL sources through read-only DuckDB/database connections.
+4. Add richer anomaly detection and business metric inference.
+5. Add stronger auditor checks for KPI consistency across generated files.
 
 ## Notes
 
