@@ -13,25 +13,50 @@ python -m pip install -e .
 axiom run .\sample_data\sales_sample.csv
 ```
 
-The first MVP creates:
+To generate only the human-reviewable analysis plan:
 
+```powershell
+axiom plan .\sample_data\sales_sample.csv
+```
+
+To force an approval checkpoint before rendering outputs:
+
+```powershell
+axiom run .\sample_data\sales_sample.csv --require-approval
+```
+
+The MVP creates:
+
+- `analysis_plan.json` with recommended questions and planned outputs
 - `data_manifesto.json` with schema, nulls, semantic hints, and anomaly warnings
 - `summary_stats.json` with numeric/categorical summaries and correlations
 - `report.pdf` with executive summary and charts
 - `slide_deck.pptx` with one insight per slide
 - `raw_data_dashboard.xlsx` with data, summaries, and charts
+- `audit.json` with basic cross-checks
 - `sandbox_logs/analysis_trace.py` containing the generated analysis trace
 
 ## Current MVP Scope
 
-This version is intentionally local and deterministic. It creates the analytical
-surface that the future LangGraph orchestrator and sandboxed ReAct loop will use.
+This version uses LangGraph to orchestrate deterministic local nodes:
+
+- Orchestrator
+- Data Engineer
+- Analysis Planner
+- Analyst
+- Document Architect
+- Auditor
+
+It creates the analytical surface that the future sandboxed ReAct loop will use.
 
 Next milestones:
 
-1. Add LangGraph state and nodes for orchestrator, data engineer, analyst, auditor,
-   and document architect.
-2. Replace local analysis execution with E2B or a locked-down Docker sandbox.
-3. Add human-in-the-loop checkpoints before heavy analysis and final rendering.
-4. Add SQL ingestion through read-only DuckDB connections.
+1. Replace local analysis execution with E2B or a locked-down Docker sandbox.
+2. Add stronger auditor checks for KPI consistency across generated files.
+3. Add SQL ingestion through read-only DuckDB connections.
+4. Add optional LLM-backed planning and narrative generation.
 
+## Environment
+
+Copy `.env.example` to `.env` and fill in local secrets as needed. `.env` is
+ignored by git.

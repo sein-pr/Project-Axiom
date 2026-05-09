@@ -2,9 +2,10 @@
 
 ## Current Status
 
-Project Axiom now has a working local MVP pipeline. The project can ingest a CSV
-or Excel file, profile the dataset, generate summary analysis, create charts, and
-render starter PDF, PPTX, and Excel outputs.
+Project Axiom now has a working LangGraph-orchestrated local MVP pipeline. The
+project can ingest a CSV or Excel file, profile the dataset, generate an
+approval-ready analysis plan, create summary analysis, create charts, and render
+starter PDF, PPTX, and Excel outputs.
 
 ## Completed
 
@@ -43,6 +44,18 @@ axiom run <input-file>
 - Added project setup documentation in `README.md`.
 - Added `.gitignore` for local environments, generated outputs, caches, and secrets.
 - Created and tested a local virtual environment.
+- Added LangGraph state and nodes:
+  - Orchestrator
+  - Data Engineer
+  - Analysis Planner
+  - Analyst
+  - Document Architect
+  - Auditor
+- Added `axiom plan <input-file>` for the human approval checkpoint.
+- Added `axiom run <input-file> --require-approval` for interactive approval
+  before rendering outputs.
+- Added `analysis_plan.json` and `audit.json` outputs.
+- Added `.env.example` with redacted configuration names.
 
 ## Verification
 
@@ -66,11 +79,13 @@ axiom_output/smoke_test/
 
 Expected files were produced:
 
+- `analysis_plan.json`
 - `data_manifesto.json`
 - `summary_stats.json`
 - `report.pdf`
 - `slide_deck.pptx`
 - `raw_data_dashboard.xlsx`
+- `audit.json`
 - `assets/revenue_distribution.png`
 - `assets/region_top_categories.png`
 - `assets/correlation_heatmap.png`
@@ -88,44 +103,43 @@ Expected files were produced:
 
 ```text
 Project Axiom/
-├── axiom/
-│   ├── __init__.py
-│   ├── analysis.py
-│   ├── cli.py
-│   ├── io.py
-│   ├── pipeline.py
-│   ├── profiling.py
-│   └── rendering.py
-├── sample_data/
-│   └── sales_sample.csv
-├── .gitignore
-├── Axiom Logo.png
-├── Project Axiom Updated Spec.md
-├── README.md
-├── PROJECT_TRACKER.md
-└── pyproject.toml
+|-- axiom/
+|   |-- __init__.py
+|   |-- analysis.py
+|   |-- cli.py
+|   |-- graph.py
+|   |-- io.py
+|   |-- pipeline.py
+|   |-- planning.py
+|   |-- profiling.py
+|   |-- rendering.py
+|   `-- state.py
+|-- sample_data/
+|   `-- sales_sample.csv
+|-- .env.example
+|-- .gitignore
+|-- Axiom Logo.png
+|-- Project Axiom Updated Spec.md
+|-- README.md
+|-- PROJECT_TRACKER.md
+`-- pyproject.toml
 ```
 
 ## Next Milestones
 
-1. Add LangGraph orchestration with stateful nodes:
-   - Orchestrator
-   - Data Engineer
-   - Analyst
-   - Auditor
-   - Document Architect
-2. Add a formal human-in-the-loop analysis plan checkpoint before heavy analysis.
-3. Replace the local deterministic analysis path with a sandboxed ReAct-style
+1. Replace the local deterministic analysis path with a sandboxed ReAct-style
    analysis loop.
-4. Add support for SQL sources through read-only DuckDB/database connections.
-5. Improve PDF/PPTX branding with the Axiom logo and visual style.
-6. Add automated tests for ingestion, profiling, analysis, and rendering.
-7. Add richer anomaly detection and business metric inference.
+2. Add support for SQL sources through read-only DuckDB/database connections.
+3. Improve PDF/PPTX branding with the Axiom logo and visual style.
+4. Add automated tests for ingestion, profiling, graph nodes, analysis, and rendering.
+5. Add richer anomaly detection and business metric inference.
+6. Add optional LLM-backed planning/narrative generation using local `.env`
+   configuration.
 
 ## Notes
 
 - Generated outputs are intentionally ignored by git through `axiom_output/`.
 - Local secrets are ignored through `.env`.
-- The current implementation is a strong local foundation, not yet the full
-  autonomous multi-agent architecture described in the v2.0 spec.
-
+- The current implementation now has the graph architecture described in the
+  v2.0 spec, but the analyst is still deterministic and local rather than a
+  sandboxed self-correcting ReAct loop.
