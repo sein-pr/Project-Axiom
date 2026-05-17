@@ -13,7 +13,11 @@ class ProfileResult:
     manifesto: dict[str, Any]
 
 
-def profile_dataset(frame: pd.DataFrame, source_name: str) -> ProfileResult:
+def profile_dataset(
+    frame: pd.DataFrame,
+    source_name: str,
+    source_metadata: dict[str, Any] | None = None,
+) -> ProfileResult:
     cleaned = frame.copy()
     cleaned.columns = [_normalize_column_name(column) for column in cleaned.columns]
 
@@ -54,13 +58,17 @@ def profile_dataset(frame: pd.DataFrame, source_name: str) -> ProfileResult:
             }
         )
 
+    metadata = source_metadata or {}
+    total_rows = int(metadata.get("total_rows", len(cleaned)))
     manifesto = {
         "source": source_name,
-        "row_count": int(len(cleaned)),
+        "row_count": total_rows,
+        "profiled_row_count": int(len(cleaned)),
         "column_count": int(len(cleaned.columns)),
         "schema": schema,
         "semantic_metadata": semantic_metadata,
         "anomaly_warnings": warnings,
+        "source_metadata": metadata,
     }
     return ProfileResult(cleaned_frame=cleaned, manifesto=manifesto)
 

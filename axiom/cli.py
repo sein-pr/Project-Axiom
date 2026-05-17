@@ -33,7 +33,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def add_common_run_arguments(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("input_path", type=Path, help="Path to a CSV, XLSX, or XLS file.")
+    parser.add_argument("input_path", nargs="+", type=Path, help="Path to one or more CSV, XLSX, or XLS files.")
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -59,7 +59,7 @@ def add_common_run_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--brand-guideline",
         type=Path,
-        default=Path("sample_data/axiom_brand_guideline.md"),
+        default=Path("axiom_brand_guideline.md"),
         help="Path to the AXIOM brand guideline used for planning and styling.",
     )
 

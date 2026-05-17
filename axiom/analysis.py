@@ -8,7 +8,9 @@ import pandas as pd
 def analyze_dataset(frame: pd.DataFrame) -> dict[str, Any]:
     numeric_columns = frame.select_dtypes(include="number").columns.tolist()
     categorical_columns = frame.select_dtypes(include=["string", "object", "category"]).columns.tolist()
-    datetime_columns = frame.select_dtypes(include=["datetime64[ns]", "datetimetz"]).columns.tolist()
+    datetime_columns = [
+        column for column in frame.columns if pd.api.types.is_datetime64_any_dtype(frame[column])
+    ]
 
     numeric_summary = {}
     for column in numeric_columns:
@@ -36,6 +38,7 @@ def analyze_dataset(frame: pd.DataFrame) -> dict[str, Any]:
 
     return {
         "row_count": int(len(frame)),
+        "analysis_row_count": int(len(frame)),
         "numeric_columns": numeric_columns,
         "categorical_columns": categorical_columns,
         "datetime_columns": datetime_columns,
@@ -88,4 +91,3 @@ def _strongest_correlation(correlations: dict[str, Any]) -> tuple[str, str, floa
             if strongest is None or absolute > abs(strongest[2]):
                 strongest = (left, right, float(value))
     return strongest
-

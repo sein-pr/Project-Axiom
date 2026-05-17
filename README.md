@@ -13,6 +13,14 @@ python -m pip install -e .
 axiom run .\sample_data\sales_sample.csv
 ```
 
+You can pass multiple related files. Axiom will profile each file, infer likely
+relationships, build an analysis table, and derive KPI measures where the column
+patterns support it:
+
+```powershell
+axiom run .\sample_data\sales_sample.csv .\sample_data\product_catalog_sample.csv
+```
+
 For development and tests:
 
 ```powershell
@@ -48,11 +56,53 @@ The MVP creates:
 - `slide_deck.pptx` with one insight per slide
 - `raw_data_dashboard.xlsx` with data, summaries, and charts
 - `audit.json` with basic cross-checks
+- `analyst_workspace/` with generated analyst scripts, retry traces, and result JSON
 - `sandbox_logs/analysis_trace.py` containing the generated analysis trace
+
+The analysis plan can include:
+
+- inferred relationships across files
+- derived measures such as `gross_profit`, `gross_margin_pct`,
+  `avg_revenue_per_unit`, and `cost_per_unit`
+- Groq-proposed additional measures when the formula can be validated against
+  numeric columns
+- Groq-recommended visualizations such as bar, line, scatter, histogram, and
+  heatmap charts
+- a dynamic `document_blueprint` that controls report sections and slide order
+- a visual diversity policy that uses recent run history to avoid repeating the
+  same chart set across reruns
+- LLM-selected presentation themes that stay within AXIOM brand colors while
+  preferring lighter executive PowerPoint backgrounds
+
+The renderer writes `document_blueprint.json` beside the generated artifacts. If
+the LLM returns an invalid document structure, Axiom normalizes or repairs the
+blueprint before rendering.
+
+## Self-Healing Analyst
+
+The Analyst node runs generated Python inside the run-specific
+`axiom_output/<run_id>/analyst_workspace/` folder. Axiom core files are not
+rewritten at runtime.
+
+Each run writes:
+
+- `analysis_input.csv`
+- `manifesto.json`
+- `analysis_plan.json`
+- `attempt_1.py`, `attempt_2.py`, and later retry scripts when needed
+- `attempt_<n>_error.txt` for failed attempts
+- `final_analysis.py` when an attempt succeeds
+- `result.json`
+- `self_healing_trace.json`
+
+If generated analyst code fails, Axiom captures the traceback, asks Groq to
+repair only the temporary analyst script when LLM mode is enabled, validates the
+repaired script, and retries. If all attempts fail, it falls back to the
+deterministic analyzer so report generation can continue.
 
 ## Current MVP Scope
 
-This version uses LangGraph to orchestrate deterministic local nodes:
+This version uses LangGraph to orchestrate local nodes:
 
 - Orchestrator
 - Data Engineer
@@ -61,14 +111,16 @@ This version uses LangGraph to orchestrate deterministic local nodes:
 - Document Architect
 - Auditor
 
-It creates the analytical surface that the future sandboxed ReAct loop will use.
+The current self-healing analyst loop is local and workspace-scoped. A future
+production version should run the generated analyst scripts in E2B or a
+locked-down Docker sandbox.
 
 Next milestones:
 
-1. Replace local analysis execution with E2B or a locked-down Docker sandbox.
+1. Move self-healing analyst execution into E2B or a locked-down Docker sandbox.
 2. Add stronger auditor checks for KPI consistency across generated files.
 3. Add SQL ingestion through read-only DuckDB connections.
-4. Add optional LLM-backed planning and narrative generation.
+4. Expand the KPI inference catalog for SaaS, finance, operations, and marketing data.
 
 ## Environment
 
@@ -85,9 +137,9 @@ Supported Groq settings:
 ## Branding
 
 Generated PDF, PPTX, chart, and Excel outputs use the AXIOM logo and brand colors
-from `sample_data/axiom_brand_guideline.md`:
+from `axiom_brand_guideline.md`:
 
-- dark enterprise backgrounds
-- electric blue and AI purple highlights
+- lighter executive PowerPoint backgrounds by default
+- electric blue, AI purple, cyan, and deep blue highlights
 - professional AXIOM naming and tagline
 - logo placement in reports and slide decks

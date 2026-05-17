@@ -6,4 +6,5 @@ __pycache__/
 .mypy_cache/
 .env
 axiom_output/
-
+sample_data/
+axiom/templates/

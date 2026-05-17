@@ -61,6 +61,33 @@ axiom run <input-file>
   PPTX, charts, and Excel outputs.
 - Added automated tests for profiling, analysis, plan-only graph execution, and
   full artifact generation.
+- Added multi-file ingestion through repeated CLI input paths.
+- Added relationship inference across uploaded data files using shared keys and
+  high-overlap unique dimensions.
+- Added a semantic model layer that builds an analysis table from related files.
+- Added KPI inference for common business measures:
+  - `gross_profit`
+  - `gross_margin_pct`
+  - `avg_revenue_per_unit`
+  - `cost_per_unit`
+- Added LLM-recommended visualization specs with validation before rendering.
+- Added support for validated LLM-proposed measures, which are materialized into
+  the analysis frame before analysis.
+- Added a self-healing analyst workspace that generates temporary analyst code,
+  captures failures, repairs/retries generated scripts, and falls back to the
+  deterministic analyzer if all attempts fail.
+- Added dynamic document blueprints so the PDF/PPTX structure can vary by
+  dataset, planner source, chart recommendations, and data model context.
+- Added document blueprint normalization so unsupported sections, invalid chart
+  references, and one-based chart references are repaired before rendering.
+- Added a visual diversity policy with recent-run history in
+  `axiom_output/_visual_history.json` so reruns can avoid repeating the same
+  chart signatures.
+- Added ecommerce-aware visual candidates for category mix, geography, payment
+  behavior, inventory health, and review/rating views when matching columns are
+  available.
+- Added LLM-normalized presentation themes so PowerPoint decks can use lighter
+  AXIOM-branded backgrounds and varied chart palettes.
 
 ## Verification
 
@@ -85,7 +112,7 @@ The automated test suite was tested successfully using:
 Result:
 
 ```text
-4 passed
+5 passed
 ```
 
 Groq-backed planning was tested successfully using:
@@ -100,6 +127,34 @@ Result:
 Planner source: groq
 ```
 
+The multi-file KPI and visualization workflow was tested successfully using:
+
+```powershell
+.\.venv\Scripts\axiom.exe run .\sample_data\sales_sample.csv .\sample_data\product_catalog_sample.csv --run-id groq_full_kpi_smoke --title "Axiom Multi File Sample"
+```
+
+Result:
+
+```text
+Audit status: passed
+```
+
+The self-healing analyst loop was tested with intentionally broken generated
+code. The first attempt failed, the temporary analyst script was replaced, and
+the second attempt completed successfully.
+
+The full graph run was also tested with:
+
+```powershell
+.\.venv\Scripts\axiom.exe run .\sample_data\sales_sample.csv .\sample_data\product_catalog_sample.csv --run-id self_healing_smoke --title "Axiom Self Healing Smoke" --no-llm
+```
+
+Result:
+
+```text
+Audit status: passed
+```
+
 The run generated outputs in:
 
 ```text
@@ -109,15 +164,15 @@ axiom_output/smoke_test/
 Expected files were produced:
 
 - `analysis_plan.json`
+- `document_blueprint.json`
 - `data_manifesto.json`
 - `summary_stats.json`
 - `report.pdf`
 - `slide_deck.pptx`
 - `raw_data_dashboard.xlsx`
 - `audit.json`
-- `assets/revenue_distribution.png`
-- `assets/region_top_categories.png`
-- `assets/correlation_heatmap.png`
+- `analyst_workspace/`
+- chart PNG files under `assets/`
 - `sandbox_logs/analysis_trace.py`
 
 ## Important Fixes Made During Build
@@ -137,6 +192,7 @@ Project Axiom/
 |   |-- analysis.py
 |   |-- branding.py
 |   |-- cli.py
+|   |-- document_plan.py
 |   |-- graph.py
 |   |-- io.py
 |   |-- llm.py
@@ -144,15 +200,23 @@ Project Axiom/
 |   |-- planning.py
 |   |-- profiling.py
 |   |-- rendering.py
-|   `-- state.py
+|   |-- semantics.py
+|   |-- self_healing.py
+|   |-- state.py
+|   |-- visual_history.py
+|   `-- visualizations.py
 |-- sample_data/
-|   |-- axiom_brand_guideline.md
-|   `-- sales_sample.csv
+|   |-- customers.csv
+|   |-- order_items.csv
+|   |-- orders.csv
+|   |-- product_reviews.csv
+|   `-- products.csv
 |-- tests/
 |   `-- test_pipeline.py
 |-- .env.example
 |-- .gitignore
 |-- Axiom Logo.png
+|-- axiom_brand_guideline.md
 |-- Project Axiom Updated Spec.md
 |-- README.md
 |-- PROJECT_TRACKER.md
@@ -161,17 +225,17 @@ Project Axiom/
 
 ## Next Milestones
 
-1. Commit and push the Groq, branding, and tests milestone.
-2. Replace the local deterministic analysis path with a sandboxed ReAct-style
-   analysis loop.
+1. Move the self-healing analyst loop into E2B or a locked-down Docker sandbox.
+2. Commit and push the self-healing, KPI, multi-file, visualization-planning,
+   chunked-processing, dynamic-document, and visual-diversity work.
+   milestone.
 3. Add support for SQL sources through read-only DuckDB/database connections.
-4. Add richer anomaly detection and business metric inference.
+4. Add richer anomaly detection and domain-specific KPI catalogs.
 5. Add stronger auditor checks for KPI consistency across generated files.
 
 ## Notes
 
 - Generated outputs are intentionally ignored by git through `axiom_output/`.
 - Local secrets are ignored through `.env`.
-- The current implementation now has the graph architecture described in the
-  v2.0 spec, but the analyst is still deterministic and local rather than a
-  sandboxed self-correcting ReAct loop.
+- The current implementation now has a workspace-scoped self-healing analyst
+  loop. It repairs generated run scripts, not Axiom core source files.

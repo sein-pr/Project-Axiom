@@ -15,7 +15,7 @@ class PipelineResult:
 
 
 def run_pipeline(
-    input_path: Path,
+    input_path: Path | list[Path],
     output_dir: Path = Path("axiom_output"),
     run_id: str | None = None,
     title: str = "Project Axiom Analysis",
@@ -27,7 +27,7 @@ def run_pipeline(
     graph = build_axiom_graph()
     result = graph.invoke(
         initial_state(
-            input_path=input_path,
+            input_paths=_coerce_input_paths(input_path),
             output_dir=output_dir,
             run_id=run_id,
             title=title,
@@ -47,7 +47,7 @@ def run_pipeline(
 
 
 def create_plan(
-    input_path: Path,
+    input_path: Path | list[Path],
     output_dir: Path = Path("axiom_output"),
     run_id: str | None = None,
     title: str = "Project Axiom Analysis",
@@ -65,3 +65,9 @@ def create_plan(
         logo_path=logo_path,
         brand_guideline_path=brand_guideline_path,
     )
+
+
+def _coerce_input_paths(input_path: Path | list[Path]) -> list[Path]:
+    if isinstance(input_path, list):
+        return input_path
+    return [input_path]
