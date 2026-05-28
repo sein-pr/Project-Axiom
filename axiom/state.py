@@ -14,6 +14,7 @@ class AxiomState(TypedDict):
     title: str
     approved: bool
     use_llm: bool
+    sandbox_backend: str
     logo_path: NotRequired[Path]
     brand_guideline_path: NotRequired[Path]
     brand_guideline: NotRequired[str]

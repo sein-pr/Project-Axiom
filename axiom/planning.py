@@ -76,7 +76,7 @@ def create_analysis_plan(
                 chart_count=len(visualizations),
             )
             render_targets = llm_plan["planned_outputs"] or render_targets
-            planner_source = "groq"
+            planner_source = planner.provider_name
 
     return {
         "title": title,

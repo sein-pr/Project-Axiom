@@ -88,6 +88,18 @@ axiom run <input-file>
   available.
 - Added LLM-normalized presentation themes so PowerPoint decks can use lighter
   AXIOM-branded backgrounds and varied chart palettes.
+- Added an E2B execution backend for self-healing analyst attempts, with
+  `auto`, `local`, and `e2b` backend selection and network access disabled by
+  default for E2B sandboxes.
+- Updated the generated baseline analyst script to use only the Python standard
+  library, so it can execute in the default offline E2B sandbox without needing
+  runtime package installs.
+- Added system certificate-store support for managed Windows networks that
+  inspect TLS traffic.
+- Added `scripts/build_e2b_template.py` to build the recommended
+  `axiom-bi-python` E2B template with BI analysis dependencies preinstalled.
+- Added OpenAI planner/document/code-repair support that uses `OPENAI_API_KEY`
+  first, with Groq retained as a fallback provider.
 
 ## Verification
 
@@ -225,7 +237,7 @@ Project Axiom/
 
 ## Next Milestones
 
-1. Move the self-healing analyst loop into E2B or a locked-down Docker sandbox.
+1. Add stronger E2B sandbox lifecycle reuse and a locked-down Docker fallback.
 2. Commit and push the self-healing, KPI, multi-file, visualization-planning,
    chunked-processing, dynamic-document, and visual-diversity work.
    milestone.
@@ -238,4 +250,5 @@ Project Axiom/
 - Generated outputs are intentionally ignored by git through `axiom_output/`.
 - Local secrets are ignored through `.env`.
 - The current implementation now has a workspace-scoped self-healing analyst
-  loop. It repairs generated run scripts, not Axiom core source files.
+  loop. It repairs generated run scripts, not Axiom core source files. Analyst
+  attempts can run locally or in E2B depending on configuration.

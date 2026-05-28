@@ -57,6 +57,7 @@ def initial_state(
     title: str = "Project Axiom Analysis",
     approved: bool = True,
     use_llm: bool = True,
+    sandbox_backend: str = "auto",
     logo_path: Path | None = None,
     brand_guideline_path: Path | None = None,
 ) -> AxiomState:
@@ -69,6 +70,7 @@ def initial_state(
         "title": title,
         "approved": approved,
         "use_llm": use_llm,
+        "sandbox_backend": sandbox_backend,
         "logo_path": logo_path.resolve() if logo_path else Path("Axiom Logo.png").resolve(),
         "brand_guideline_path": brand_guideline_path.resolve()
         if brand_guideline_path
@@ -144,6 +146,7 @@ def analyst_node(state: AxiomState) -> dict[str, Any]:
         analysis_plan=state["analysis_plan"],
         workspace=state["run_dir"] / "analyst_workspace",
         use_llm=state["use_llm"],
+        sandbox_backend=state.get("sandbox_backend", "auto"),
     )
     return {"analysis": result.analysis}
 

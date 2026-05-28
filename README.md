@@ -34,8 +34,9 @@ To generate only the human-reviewable analysis plan:
 axiom plan .\sample_data\sales_sample.csv
 ```
 
-By default, planning uses Groq when a key is present in `.env`. To force the
-deterministic fallback:
+By default, planning uses OpenAI when `OPENAI_API_KEY` is present in `.env`,
+then falls back to Groq if Groq keys are configured. To force the deterministic
+fallback:
 
 ```powershell
 axiom plan .\sample_data\sales_sample.csv --no-llm
@@ -46,6 +47,20 @@ To force an approval checkpoint before rendering outputs:
 ```powershell
 axiom run .\sample_data\sales_sample.csv --require-approval
 ```
+
+To force generated analyst code to run in E2B:
+
+```powershell
+axiom run .\sample_data\sales_sample.csv --sandbox-backend e2b
+```
+
+The default `--sandbox-backend auto` uses E2B when `E2B_API_KEY` is configured
+and falls back to local subprocess execution otherwise. E2B analyst sandboxes
+are created with internet access disabled by default. For production use,
+configure `AXIOM_E2B_TEMPLATE` with a Python template that already includes
+any heavier analysis dependencies you want to allow; the baseline generated
+analyst script uses only the Python standard library so it can run in the
+default locked-down E2B template.
 
 The MVP creates:
 
@@ -80,9 +95,15 @@ blueprint before rendering.
 
 ## Self-Healing Analyst
 
-The Analyst node runs generated Python inside the run-specific
-`axiom_output/<run_id>/analyst_workspace/` folder. Axiom core files are not
-rewritten at runtime.
+The Analyst node writes generated Python and input snapshots inside the
+run-specific `axiom_output/<run_id>/analyst_workspace/` folder. Axiom core files
+are not rewritten at runtime.
+
+Execution backends:
+
+- `auto`: use E2B when configured, otherwise local execution
+- `e2b`: run attempts in an isolated E2B cloud sandbox
+- `local`: run attempts as local Python subprocesses
 
 Each run writes:
 
@@ -111,13 +132,13 @@ This version uses LangGraph to orchestrate local nodes:
 - Document Architect
 - Auditor
 
-The current self-healing analyst loop is local and workspace-scoped. A future
-production version should run the generated analyst scripts in E2B or a
-locked-down Docker sandbox.
+The self-healing analyst loop now supports E2B and local execution. A future
+production version should add stronger sandbox lifecycle reuse and a
+locked-down Docker alternative for self-hosted deployments.
 
 Next milestones:
 
-1. Move self-healing analyst execution into E2B or a locked-down Docker sandbox.
+1. Add stronger sandbox lifecycle reuse and a locked-down Docker fallback.
 2. Add stronger auditor checks for KPI consistency across generated files.
 3. Add SQL ingestion through read-only DuckDB connections.
 4. Expand the KPI inference catalog for SaaS, finance, operations, and marketing data.
@@ -127,12 +148,32 @@ Next milestones:
 Copy `.env.example` to `.env` and fill in local secrets as needed. `.env` is
 ignored by git.
 
-Supported Groq settings:
+Supported OpenAI settings:
+
+- `OPENAI_API_KEY`
+- `AXIOM_OPENAI_MODEL`, defaulting to `gpt-5.1`
+- `AXIOM_OPENAI_REASONING_EFFORT`, defaulting to `none`
+
+Supported Groq fallback settings:
 
 - `GROQ_API_KEY`
 - `groq_api_key_1`
 - `groq_api_key_2`
 - `AXIOM_GROQ_MODEL`, defaulting to `llama-3.3-70b-versatile`
+
+Supported E2B settings:
+
+- `E2B_API_KEY`
+- `AXIOM_E2B_TEMPLATE`, optional sandbox template with analysis dependencies
+- `AXIOM_E2B_TIMEOUT`, defaulting to `300`
+- `AXIOM_E2B_ALLOW_INTERNET`, defaulting to `false`
+- `AXIOM_USE_SYSTEM_CERTS`, defaulting to `true` for managed Windows networks
+
+To build the recommended E2B BI template:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\build_e2b_template.py
+```
 
 ## Branding
 

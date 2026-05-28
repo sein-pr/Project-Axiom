@@ -21,6 +21,7 @@ def run_pipeline(
     title: str = "Project Axiom Analysis",
     approved: bool = True,
     use_llm: bool = True,
+    sandbox_backend: str = "auto",
     logo_path: Path | None = None,
     brand_guideline_path: Path | None = None,
 ) -> PipelineResult:
@@ -33,6 +34,7 @@ def run_pipeline(
             title=title,
             approved=approved,
             use_llm=use_llm,
+            sandbox_backend=sandbox_backend,
             logo_path=logo_path,
             brand_guideline_path=brand_guideline_path,
         )
@@ -52,6 +54,7 @@ def create_plan(
     run_id: str | None = None,
     title: str = "Project Axiom Analysis",
     use_llm: bool = True,
+    sandbox_backend: str = "auto",
     logo_path: Path | None = None,
     brand_guideline_path: Path | None = None,
 ) -> PipelineResult:
@@ -62,6 +65,7 @@ def create_plan(
         title=title,
         approved=False,
         use_llm=use_llm,
+        sandbox_backend=sandbox_backend,
         logo_path=logo_path,
         brand_guideline_path=brand_guideline_path,
     )

@@ -79,6 +79,7 @@ def test_graph_run_creates_expected_artifacts(tmp_path: Path) -> None:
         run_id="run_test",
         title="Run Test",
         use_llm=False,
+        sandbox_backend="local",
         logo_path=LOGO,
         brand_guideline_path=BRAND_GUIDELINE,
     )
@@ -122,6 +123,7 @@ def test_multi_file_run_infers_relationships_and_kpis(tmp_path: Path) -> None:
         run_id="multi_file_test",
         title="Multi File Test",
         use_llm=False,
+        sandbox_backend="local",
         logo_path=LOGO,
         brand_guideline_path=BRAND_GUIDELINE,
     )
@@ -165,11 +167,13 @@ def test_self_healing_analyst_recovers_from_broken_generated_code(tmp_path: Path
         analysis_plan=plan,
         workspace=tmp_path / "analyst_workspace",
         use_llm=False,
+        sandbox_backend="local",
         initial_code=broken_code,
     )
 
     assert not result.used_fallback
     assert len(result.attempts) == 2
+    assert result.attempts[1]["backend"] == "local"
     assert result.attempts[0]["status"] == "failed"
     assert result.attempts[1]["status"] == "succeeded"
     assert result.analysis["row_count"] == 2

@@ -62,6 +62,12 @@ def add_common_run_arguments(parser: argparse.ArgumentParser) -> None:
         default=Path("axiom_brand_guideline.md"),
         help="Path to the AXIOM brand guideline used for planning and styling.",
     )
+    parser.add_argument(
+        "--sandbox-backend",
+        choices=["auto", "local", "e2b"],
+        default="auto",
+        help="Execution backend for generated analyst code. Auto uses E2B when configured, otherwise local.",
+    )
 
 
 def add_llm_argument(parser: argparse.ArgumentParser) -> None:
@@ -83,6 +89,7 @@ def main() -> None:
             run_id=args.run_id,
             title=args.title,
             use_llm=not args.no_llm,
+            sandbox_backend=args.sandbox_backend,
             logo_path=args.logo,
             brand_guideline_path=args.brand_guideline,
         )
@@ -99,6 +106,7 @@ def main() -> None:
                 run_id=args.run_id,
                 title=args.title,
                 use_llm=not args.no_llm,
+                sandbox_backend=args.sandbox_backend,
                 logo_path=args.logo,
                 brand_guideline_path=args.brand_guideline,
             )
@@ -120,6 +128,7 @@ def main() -> None:
             title=args.title,
             approved=approved,
             use_llm=not args.no_llm,
+            sandbox_backend=args.sandbox_backend,
             logo_path=args.logo,
             brand_guideline_path=args.brand_guideline,
         )
